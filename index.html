@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accounting & Compliance Services | ManIterates</title>
+  <meta name="description" content="Professional Accounting, GST, TDS & Compliance Services. Transparent pricing for Indian SMBs." />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f8faff; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    input:focus { border-color: #1a3fac !important; box-shadow: 0 0 0 3px rgba(26,63,172,0.1); }
+    button:hover { opacity: 0.92; transform: translateY(-1px); transition: all 0.15s; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+
+
+
+const packages = [
+  {
+    id: "starter",
+    name: "Starter",
+    tagline: "Freelancers, Proprietors & Small Traders",
+    turnover: "Up to ₹20 Lakhs / year",
+    monthlyPrice: 4000,
+    badge: null,
+    features: [
+      "Books of Accounts (Tally Prime / Zoho Books)",
+      "GSTR-1 + GSTR-3B Monthly Filing",
+      "Bank Reconciliation (Monthly)",
+      "Quarterly P&L + Balance Sheet",
+      "Purchase & Sales Ledger Maintenance",
+      "Email Support",
+    ],
+    notIncluded: ["TDS Compliance & Filing", "Payroll Processing", "Monthly MIS Reports", "GSTR-9 Annual Return"],
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    tagline: "Growing SMBs, Retailers & Service Firms",
+    turnover: "₹20 Lakhs – ₹1 Crore / year",
+    monthlyPrice: 7000,
+    badge: "Most Popular",
+    features: [
+      "Everything in Starter",
+      "Monthly P&L + Balance Sheet",
+      "TDS Computation & Return Filing",
+      "Payroll Processing (up to 5 staff)",
+      "Monthly MIS Report",
+      "WhatsApp + Email Priority Support",
+    ],
+    notIncluded: ["GSTR-9 Annual Return", "Payroll beyond 5 staff", "Advance Tax Planning"],
+  },
+  {
+    id: "business",
+    name: "Business",
+    tagline: "Established Businesses & Manufacturers",
+    turnover: "₹1 Crore – ₹5 Crore / year",
+    monthlyPrice: 9000,
+    badge: "Best Value",
+    features: [
+      "Everything in Growth",
+      "GSTR-9 Annual Return Included",
+      "Advance Tax Computation & Filing",
+      "Payroll Processing (up to 10 staff)",
+      "Detailed MIS + Cash Flow Statement",
+      "Priority WhatsApp + Phone Support",
+    ],
+    notIncluded: [],
+  },
+];
+
+const addons = [
+  { id: "itr12",   label: "ITR-1 / ITR-2 Filing",          price: 1000,  category: "Income Tax",   icon: "📄", note: "" },
+  { id: "itr3",    label: "ITR-3 Filing",                   price: 2000,  category: "Income Tax",   icon: "📄", note: "" },
+  { id: "itr4",    label: "ITR-4 Filing",                   price: 3000,  category: "Income Tax",   icon: "📄", note: "" },
+  { id: "tax_comp",label: "Tax Computation & Planning",     price: 2000,  category: "Income Tax",   icon: "🧮", note: "" },
+  { id: "gst_reg", label: "GST Registration",               price: 4000,  category: "GST",          icon: "📋", note: "One-time" },
+  { id: "gstr9",   label: "GSTR-9 Annual Return",           price: 4000,  category: "GST",          icon: "📊", note: "Per year" },
+  { id: "gst_rec", label: "GST Reconciliation (2A/2B)",     price: 2500,  category: "GST",          icon: "🔍", note: "" },
+  { id: "msme_reg",label: "MSME / Udyam Registration",      price: 1500,  category: "Registrations",icon: "🏭", note: "One-time" },
+  { id: "tds_ret", label: "TDS Return (24Q / 26Q)",         price: 2000,  category: "TDS",          icon: "🗂️", note: "Per quarter" },
+  { id: "payroll", label: "Payroll Processing",             price: null,  category: "Payroll",      icon: "👥", note: "Volume-based" },
+];
+
+const BLUE = "#1a3fac";
+const BLUE_DARK = "#122c80";
+const BLUE_LIGHT = "#2a55d4";
+const BLUE_BG = "#eef2ff";
+const BLUE_BORDER = "#c7d4f8";
+
+function AccountingPricing() {
+  const [selectedPackage, setSelectedPackage] = useState("growth");
+  const [billing, setBilling] = useState("monthly");
+  const [selectedAddons, setSelectedAddons] = useState([]);
+  const [showQuote, setShowQuote] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientBiz, setClientBiz] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const annualDiscount = 0.1;
+  const pkg = packages.find((p) => p.id === selectedPackage);
+  const baseMonthly = pkg.monthlyPrice;
+  const baseAnnual = Math.round(baseMonthly * 12 * (1 - annualDiscount));
+
+  const addonTotal = selectedAddons.reduce((sum, id) => {
+    const a = addons.find((x) => x.id === id);
+    return sum + (a && a.price ? a.price : 0);
+  }, 0);
+
+  const toggleAddon = (id) => {
+    const a = addons.find((x) => x.id === id);
+    if (!a.price) return;
+    setSelectedAddons((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const fmt = (n) => n ? "₹" + n.toLocaleString("en-IN") : "Custom";
+
+  const categories = [...new Set(addons.map((a) => a.category))];
+
+  const displayPrice = billing === "annual"
+    ? Math.round(baseAnnual / 12)
+    : baseMonthly;
+
+  return (
+    <div style={{ fontFamily: "'Segoe UI', Georgia, sans-serif", background: "#f8faff", minHeight: "100vh", color: "#1a1a2e", padding: "36px 16px" }}>
+
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 44 }}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+            <span style={{
+              fontSize: 32, fontWeight: 900, color: "#1a3fac",
+              fontFamily: "Georgia, serif", letterSpacing: "-1px"
+            }}>Man</span>
+            <span style={{
+              fontSize: 32, fontWeight: 900,
+              background: "linear-gradient(135deg, #1a3fac 0%, #2a55d4 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              fontFamily: "Georgia, serif", letterSpacing: "-1px"
+            }}>Iterates</span>
+            <span style={{
+              fontSize: 28, color: "#1a3fac", marginLeft: 3,
+              display: "inline-block", animation: "spin 3s linear infinite",
+              fontWeight: 700
+            }}>↺</span>
+          </div>
+        </div>
+
+        <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 6px", color: BLUE_DARK, letterSpacing: 0.5 }}>
+          Accounting & Compliance Services
+        </h1>
+        <p style={{ color: "#5a6a9a", fontSize: 13, margin: "0 0 20px", letterSpacing: 0.3 }}>
+          GST · TDS · Books of Accounts · Tally Prime · Zoho Books
+        </p>
+        <div style={{ display: "inline-flex", background: "#fff", border: `1.5px solid ${BLUE_BORDER}`, borderRadius: 32, padding: 4, gap: 4 }}>
+          {["monthly", "annual"].map((b) => (
+            <button
+              key={b}
+              onClick={() => setBilling(b)}
+              style={{
+                padding: "8px 24px", borderRadius: 28, border: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: 700, transition: "all 0.2s",
+                background: billing === b ? BLUE : "transparent",
+                color: billing === b ? "#fff" : "#5a6a9a",
+              }}
+            >
+              {b === "monthly" ? "Monthly" : "Annual"}
+              {b === "annual" && (
+                <span style={{ marginLeft: 6, fontSize: 10, background: "#10b981", color: "#fff", borderRadius: 10, padding: "2px 7px" }}>
+                  10% OFF
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Package Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: 20, maxWidth: 980, margin: "0 auto 44px" }}>
+        {packages.map((p) => {
+          const price = billing === "annual" ? Math.round(p.monthlyPrice * 12 * (1 - annualDiscount) / 12) : p.monthlyPrice;
+          const isSelected = selectedPackage === p.id;
+          return (
+            <div
+              key={p.id}
+              onClick={() => setSelectedPackage(p.id)}
+              style={{
+                background: isSelected ? "#fff" : "#fafbff",
+                border: isSelected ? `2px solid ${BLUE}` : `1.5px solid ${BLUE_BORDER}`,
+                borderRadius: 16, padding: "26px 22px", cursor: "pointer", position: "relative",
+                transition: "all 0.2s", transform: isSelected ? "translateY(-5px)" : "none",
+                boxShadow: isSelected ? `0 10px 36px rgba(26,63,172,0.15)` : "0 2px 8px rgba(26,63,172,0.05)",
+              }}
+            >
+              {p.badge && (
+                <div style={{
+                  position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)",
+                  background: BLUE, borderRadius: 20, padding: "4px 14px",
+                  fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap",
+                }}>
+                  {p.badge}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: "#8a9ac8", letterSpacing: 2, marginBottom: 3 }}>PACKAGE</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: isSelected ? BLUE : BLUE_DARK }}>{p.name}</div>
+                </div>
+                <div style={{
+                  width: 18, height: 18, borderRadius: "50%", marginTop: 4,
+                  background: isSelected ? BLUE : "transparent",
+                  border: `2px solid ${isSelected ? BLUE : BLUE_BORDER}`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  {isSelected && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff" }} />}
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: "#7a88b8", marginBottom: 18 }}>{p.tagline}</div>
+
+              <div style={{ marginBottom: 14 }}>
+                <span style={{ fontSize: 32, fontWeight: 900, color: BLUE_DARK }}>{fmt(price)}</span>
+                <span style={{ fontSize: 13, color: "#8a9ac8" }}>/month</span>
+                {billing === "annual" && (
+                  <div style={{ fontSize: 11, color: "#10b981", marginTop: 3 }}>
+                    {fmt(price * 12)}/year · Save {fmt(p.monthlyPrice * 12 * annualDiscount)}
+                  </div>
+                )}
+              </div>
+
+              <div style={{
+                fontSize: 11, background: BLUE_BG, color: BLUE, borderRadius: 8,
+                padding: "5px 10px", marginBottom: 18, display: "inline-block", fontWeight: 600,
+              }}>
+                📊 {p.turnover}
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                {p.features.map((f, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "#2c3a6e" }}>
+                    <span style={{ color: "#10b981", marginTop: 1, flexShrink: 0, fontWeight: 700 }}>✓</span> {f}
+                  </div>
+                ))}
+                {p.notIncluded.map((f, i) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, color: "#b0bad8" }}>
+                    <span style={{ color: "#ccd4e8", marginTop: 1, flexShrink: 0 }}>✗</span> {f}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add-ons */}
+      <div style={{ maxWidth: 980, margin: "0 auto 36px" }}>
+        <div style={{ borderBottom: `2px solid ${BLUE_BORDER}`, paddingBottom: 10, marginBottom: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, color: BLUE_DARK, margin: 0 }}>Add-on Services</h2>
+          <p style={{ fontSize: 12, color: "#8a9ac8", margin: "4px 0 0" }}>Billed separately · One-time or as applicable</p>
+        </div>
+        {categories.map((cat) => (
+          <div key={cat} style={{ marginBottom: 22 }}>
+            <div style={{ fontSize: 10, color: BLUE, letterSpacing: 2, fontWeight: 700, marginBottom: 10, textTransform: "uppercase" }}>
+              {cat}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(215px, 1fr))", gap: 10 }}>
+              {addons.filter((a) => a.category === cat).map((a) => {
+                const active = selectedAddons.includes(a.id);
+                const isCustom = !a.price;
+                return (
+                  <div
+                    key={a.id}
+                    onClick={() => toggleAddon(a.id)}
+                    style={{
+                      background: active ? BLUE_BG : "#fff",
+                      border: active ? `1.5px solid ${BLUE}` : `1.5px solid ${BLUE_BORDER}`,
+                      borderRadius: 10, padding: "12px 14px", cursor: isCustom ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      transition: "all 0.15s", opacity: isCustom ? 0.85 : 1,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>{a.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: active ? BLUE : "#2c3a6e" }}>{a.label}</div>
+                        <div style={{ fontSize: 11, color: active ? BLUE_LIGHT : "#8a9ac8" }}>
+                          {a.price ? fmt(a.price) : "Volume-Based"}{a.note ? ` · ${a.note}` : ""}
+                        </div>
+                      </div>
+                    </div>
+                    {!isCustom && (
+                      <div style={{
+                        width: 18, height: 18, borderRadius: 4, flexShrink: 0,
+                        background: active ? BLUE : "transparent",
+                        border: active ? "none" : `1.5px solid ${BLUE_BORDER}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {active && <span style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>✓</span>}
+                      </div>
+                    )}
+                    {isCustom && (
+                      <span style={{ fontSize: 10, background: "#fef3c7", color: "#92400e", borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>
+                        QUOTE
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quote Summary */}
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <div style={{
+          background: "#fff", borderRadius: 16, padding: "24px 28px",
+          border: `1.5px solid ${BLUE_BORDER}`,
+          boxShadow: "0 4px 20px rgba(26,63,172,0.08)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 10, color: "#8a9ac8", letterSpacing: 2, fontWeight: 700, marginBottom: 4 }}>QUOTE SUMMARY</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: BLUE_DARK }}>
+                {pkg.name} Package
+                {billing === "annual" && <span style={{ fontSize: 12, color: "#10b981", fontWeight: 600, marginLeft: 8 }}>Annual · 10% Off</span>}
+              </div>
+              <div style={{ fontSize: 12, color: "#8a9ac8", marginTop: 3 }}>{pkg.turnover}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, color: "#8a9ac8", marginBottom: 2 }}>
+                {billing === "monthly" ? "Monthly Retainer" : "Annual Total"}
+              </div>
+              <div style={{ fontSize: 30, fontWeight: 900, color: BLUE_DARK }}>
+                {billing === "monthly" ? fmt(baseMonthly) : fmt(baseAnnual)}
+                <span style={{ fontSize: 14, fontWeight: 400, color: "#8a9ac8" }}>
+                  {billing === "monthly" ? "/mo" : "/yr"}
+                </span>
+              </div>
+              {addonTotal > 0 && (
+                <div style={{ fontSize: 12, color: "#f59e0b", marginTop: 2 }}>
+                  + {fmt(addonTotal)} add-ons (one-time)
+                </div>
+              )}
+            </div>
+          </div>
+
+          {selectedAddons.length > 0 && (
+            <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${BLUE_BORDER}` }}>
+              <div style={{ fontSize: 10, color: "#8a9ac8", letterSpacing: 2, fontWeight: 700, marginBottom: 10 }}>SELECTED ADD-ONS</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {selectedAddons.map((id) => {
+                  const a = addons.find((x) => x.id === id);
+                  return (
+                    <div key={id} style={{
+                      background: BLUE_BG, border: `1px solid ${BLUE_BORDER}`,
+                      borderRadius: 8, padding: "5px 12px", fontSize: 12, color: BLUE, fontWeight: 600,
+                    }}>
+                      {a.icon} {a.label} · {fmt(a.price)}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${BLUE_BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+            <div style={{ fontSize: 11, color: "#b0bad8" }}>
+              ✦ Prices in INR &nbsp;·&nbsp; ✦ Tally Prime · Zoho Books
+            </div>
+            <button
+              onClick={() => { setShowQuote(!showQuote); setSent(false); }}
+              style={{
+                background: BLUE, color: "#fff", border: "none", borderRadius: 10,
+                padding: "10px 26px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(26,63,172,0.25)",
+              }}
+            >
+              {showQuote ? "✕ Close" : "📩 Get This Quote"}
+            </button>
+          </div>
+
+          {showQuote && !sent && (
+            <div style={{
+              marginTop: 16, background: BLUE_BG, borderRadius: 12,
+              padding: "22px 20px", border: `1px solid ${BLUE_BORDER}`,
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BLUE_DARK, marginBottom: 4 }}>Tell us about your business</div>
+              <div style={{ fontSize: 12, color: "#7a88b8", marginBottom: 16 }}>We'll reach out within 24 hours to confirm your package.</div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: "#7a88b8", fontWeight: 600, display: "block", marginBottom: 5 }}>YOUR NAME *</label>
+                  <input
+                    value={clientName} onChange={e => setClientName(e.target.value)}
+                    placeholder="e.g. Rahul Sharma"
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1.5px solid ${BLUE_BORDER}`, fontSize: 13, color: "#2c3a6e", background: "#fff", boxSizing: "border-box", outline: "none" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: "#7a88b8", fontWeight: 600, display: "block", marginBottom: 5 }}>WHATSAPP NUMBER *</label>
+                  <input
+                    value={clientPhone} onChange={e => setClientPhone(e.target.value)}
+                    placeholder="e.g. 9876543210"
+                    style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1.5px solid ${BLUE_BORDER}`, fontSize: 13, color: "#2c3a6e", background: "#fff", boxSizing: "border-box", outline: "none" }}
+                  />
+                </div>
+              </div>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, color: "#7a88b8", fontWeight: 600, display: "block", marginBottom: 5 }}>BUSINESS NAME (optional)</label>
+                <input
+                  value={clientBiz} onChange={e => setClientBiz(e.target.value)}
+                  placeholder="e.g. Sharma Traders"
+                  style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: `1.5px solid ${BLUE_BORDER}`, fontSize: 13, color: "#2c3a6e", background: "#fff", boxSizing: "border-box", outline: "none" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  onClick={() => {
+                    if (!clientName || !clientPhone) return;
+                    const addonNames = selectedAddons.map(id => addons.find(a => a.id === id)?.label).filter(Boolean).join(", ");
+                    const price = billing === "annual" ? fmt(baseAnnual) + "/yr" : fmt(baseMonthly) + "/mo";
+                    const msg = encodeURIComponent(
+                      `Hi Manoj,\n\nI'm interested in your *${pkg.name} Package* (${price}).\n` +
+                      `Turnover: ${pkg.turnover}\n` +
+                      (addonNames ? `Add-ons: ${addonNames}\n` : "") +
+                      `\nMy details:\nName: ${clientName}\n` +
+                      (clientBiz ? `Business: ${clientBiz}\n` : "") +
+                      `\nPlease get in touch. Thank you!`
+                    );
+                    window.open(`https://wa.me/919511700722?text=${msg}`, "_blank");
+                    setSent(true);
+                  }}
+                  style={{
+                    flex: 1, background: "#25D366", color: "#fff", border: "none", borderRadius: 9,
+                    padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  WhatsApp ManIterates
+                </button>
+                <button
+                  onClick={() => {
+                    if (!clientName || !clientPhone) return;
+                    const addonNames = selectedAddons.map(id => addons.find(a => a.id === id)?.label).filter(Boolean).join(", ");
+                    const price = billing === "annual" ? fmt(baseAnnual) + "/yr" : fmt(baseMonthly) + "/mo";
+                    const subject = encodeURIComponent(`Quote Request – ${pkg.name} Package`);
+                    const body = encodeURIComponent(
+                      `Hi Manoj,\n\nI am interested in your ${pkg.name} Package (${price}).\nTurnover: ${pkg.turnover}\n` +
+                      (addonNames ? `Add-ons required: ${addonNames}\n` : "") +
+                      `\nName: ${clientName}\n` +
+                      (clientBiz ? `Business: ${clientBiz}\n` : "") +
+                      `WhatsApp: ${clientPhone}\n\nPlease get in touch. Thank you.`
+                    );
+                    window.open(`mailto:kukrejamanoj9@gmail.com?subject=${subject}&body=${body}`, "_blank");
+                    setSent(true);
+                  }}
+                  style={{
+                    flex: 1, background: "#fff", color: BLUE, border: `1.5px solid ${BLUE_BORDER}`, borderRadius: 9,
+                    padding: "11px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  }}
+                >
+                  ✉ Send Email
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "#b0bad8", marginTop: 10, textAlign: "center" }}>
+                * Name and WhatsApp number required to send inquiry
+              </div>
+            </div>
+          )}
+
+          {showQuote && sent && (
+            <div style={{
+              marginTop: 16, background: "#f0fdf4", borderRadius: 12,
+              padding: "24px 20px", border: "1.5px solid #86efac", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🎉</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#166534", marginBottom: 4 }}>Inquiry Sent!</div>
+              <div style={{ fontSize: 13, color: "#4ade80" !== "" ? "#15803d" : "#15803d" }}>
+                ManIterates will connect with you on WhatsApp shortly.
+              </div>
+              <button
+                onClick={() => { setSent(false); setClientName(""); setClientPhone(""); setClientBiz(""); }}
+                style={{ marginTop: 14, background: "transparent", border: `1px solid #86efac`, color: "#15803d", borderRadius: 8, padding: "7px 18px", fontSize: 12, cursor: "pointer" }}
+              >
+                Send Another Inquiry
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ textAlign: "center", marginTop: 32, fontSize: 11, color: "#b0bad8", letterSpacing: 1 }}>
+        ManIterates ↺ · BOOKS OF ACCOUNTS & COMPLIANCE
+      </div>
+    </div>
+  );
+}
+
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AccountingPricing />);
+  </script>
+</body>
+</html>
